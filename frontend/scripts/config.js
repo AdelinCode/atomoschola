@@ -1,15 +1,14 @@
 // API Configuration
 const CONFIG = {
-  // API URL configuration for separate deployments
+  // API URL - uses environment variable or falls back to localhost
   API_BASE_URL: (() => {
     // Check if we're in development (localhost)
     if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
       return 'http://localhost:5000/api';
     }
     
-    // Production - use window.ENV.API_URL if set, otherwise use default
-    // Set this in your HTML or via build process
-    return window.ENV?.API_URL || 'https://your-backend-app.vercel.app/api';
+    // Production - use API_URL from environment
+    return process.env.API_URL || 'https://atomoschola-backend.vercel.app/api';
   })(),
   
   // Environment detection
