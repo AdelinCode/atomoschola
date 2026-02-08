@@ -92,8 +92,10 @@ window.changeUserType = async function(userId, newType) {
         return;
     }
     
+    const apiUrl = window.CONFIG ? window.CONFIG.API_BASE_URL : 'http://localhost:5000/api';
+    
     try {
-        const response = await fetch(`http://localhost:5000/api/users/${userId}/type`, {
+        const response = await fetch(`${apiUrl}/users/${userId}/type`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
@@ -129,8 +131,10 @@ window.deleteUser = async function(userId, username) {
         return;
     }
     
+    const apiUrl = window.CONFIG ? window.CONFIG.API_BASE_URL : 'http://localhost:5000/api';
+    
     try {
-        const response = await fetch(`http://localhost:5000/api/users/${userId}`, {
+        const response = await fetch(`${apiUrl}/users/${userId}`, {
             method: 'DELETE',
             headers: {
                 'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -169,7 +173,8 @@ window.deleteUser = async function(userId, username) {
 // Add getAll method to users API if not exists
 if (window.API && window.API.users && !window.API.users.getAll) {
     window.API.users.getAll = () => {
-        return fetch('http://localhost:5000/api/users', {
+        const apiUrl = window.CONFIG ? window.CONFIG.API_BASE_URL : 'http://localhost:5000/api';
+        return fetch(`${apiUrl}/users`, {
             headers: {
                 'Authorization': `Bearer ${localStorage.getItem('token')}`
             }

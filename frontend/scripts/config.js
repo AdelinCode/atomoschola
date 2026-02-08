@@ -7,9 +7,9 @@ const CONFIG = {
       return 'http://localhost:5000/api';
     }
     
-    // Production - use environment variable or default backend URL
-    // You'll need to update this with your actual backend URL
-    return 'https://your-backend-app.vercel.app/api';
+    // Production - use window.ENV.API_URL if set, otherwise use default
+    // Set this in your HTML or via build process
+    return window.ENV?.API_URL || 'https://your-backend-app.vercel.app/api';
   })(),
   
   // Environment detection

@@ -31,8 +31,10 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Serve static files from frontend
-app.use(express.static(path.join(__dirname, '..', 'frontend')));
+// Serve static files from frontend (only in development)
+if (process.env.NODE_ENV !== 'production') {
+  app.use(express.static(path.join(__dirname, '..', 'frontend')));
+}
 
 // API Routes
 app.use('/api/auth', authRoutes);
@@ -48,10 +50,20 @@ app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', message: 'Server is running' });
 });
 
-// Serve frontend for all other routes (SPA support)
-app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '..', 'frontend', 'index.html'));
-});
+// Serve frontend for all other routes (only in development)
+if (process.env.NODE_ENV !== 'production') {
+  app.get('*', (req, res) => {
+      res.sendFile(path.join(__dirname, '..', 'frontend', 'index.html'));
+  });
+} else {
+  // In production, return 404 for non-API routes
+  app.get('*', (req, res) => {
+      res.status(404).json({ 
+          success: false, 
+          message: 'Route not found. This is an API-only server.' 
+      });
+  });
+}
 
 // Error handling middleware
 app.use((err, req, res, next) => {

@@ -324,9 +324,10 @@ window.applyUserUpgradeCode = async function() {
         }
         
         const newType = validateResponse.data.userType;
+        const apiUrl = window.CONFIG ? window.CONFIG.API_BASE_URL : 'http://localhost:5000/api';
         
         // Update current user
-        const updateResponse = await fetch(`http://localhost:5000/api/users/${currentUser._id}/upgrade`, {
+        const updateResponse = await fetch(`${apiUrl}/users/${currentUser._id}/upgrade`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
