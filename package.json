@@ -8,7 +8,7 @@
     "mongodb": "mongod --dbpath ./backend/data/db",
     "server": "nodemon backend/server.js",
     "start": "node backend/server.js",
-    "seed": "node backend/scripts/seedDatabase.js"
+    "seed": "node backend/scripts/seed.js"
   },
   "keywords": [
     "education",
