@@ -41,6 +41,10 @@ function renderGuestNav() {
     if (!navMenu) return;
     
     navMenu.innerHTML = `
+        <a href="staff.html" class="nav-item">
+            <i class="fas fa-users-cog"></i>
+            Staff
+        </a>
         <a href="login.html" class="nav-item">
             <i class="fas fa-sign-in-alt"></i>
             Login
@@ -58,6 +62,14 @@ function renderAuthenticatedNav() {
     
     let navItems = '';
     
+    // Add Staff button for all users
+    navItems += `
+        <a href="staff.html" class="nav-item">
+            <i class="fas fa-users-cog"></i>
+            Staff
+        </a>
+    `;
+    
     // Add Events button for all users
     navItems += `
         <a href="events.html" class="nav-item">
@@ -72,7 +84,7 @@ function renderAuthenticatedNav() {
         navItems += `
             <a href="create-content.html" class="nav-item">
                 <i class="fas fa-plus-circle"></i>
-                Create Content
+                Create
             </a>
         `;
     }
@@ -613,23 +625,20 @@ async function loadHomepageData() {
     if (!subjectsGrid) return;
     
     try {
+        // Load stats separately (faster and cached)
+        const statsPromise = window.API.stats.getStats();
+        
         // Load subjects from API
         const response = await window.API.subjects.getAll();
         
         if (response.success && response.data.length > 0) {
             subjectsGrid.innerHTML = '';
             
-            // Calculate global stats
-            let globalTotalLessons = 0;
-            let globalTotalDomains = 0;
-            
             response.data.forEach(subject => {
-                // Count total lessons across all domains and categories
+                // Count total lessons for this subject
                 let totalLessons = 0;
                 
                 if (subject.domains) {
-                    globalTotalDomains += subject.domains.length;
-                    
                     subject.domains.forEach(domain => {
                         if (domain.categories) {
                             domain.categories.forEach(category => {
@@ -640,8 +649,6 @@ async function loadHomepageData() {
                         }
                     });
                 }
-                
-                globalTotalLessons += totalLessons;
                 
                 const card = document.createElement('div');
                 card.className = 'subject-card';
@@ -662,14 +669,17 @@ async function loadHomepageData() {
                 subjectsGrid.appendChild(card);
             });
             
-            // Update hero stats
-            const totalLessonsEl = document.getElementById('totalLessons');
-            const totalSubjectsEl = document.getElementById('totalSubjects');
-            const totalDomainsEl = document.getElementById('totalDomains');
-            
-            if (totalLessonsEl) totalLessonsEl.textContent = globalTotalLessons;
-            if (totalSubjectsEl) totalSubjectsEl.textContent = response.data.length;
-            if (totalDomainsEl) totalDomainsEl.textContent = globalTotalDomains;
+            // Update hero stats from dedicated endpoint
+            const statsResponse = await statsPromise;
+            if (statsResponse.success) {
+                const totalLessonsEl = document.getElementById('totalLessons');
+                const totalSubjectsEl = document.getElementById('totalSubjects');
+                const totalDomainsEl = document.getElementById('totalDomains');
+                
+                if (totalLessonsEl) totalLessonsEl.textContent = statsResponse.data.totalLessons;
+                if (totalSubjectsEl) totalSubjectsEl.textContent = statsResponse.data.totalSubjects;
+                if (totalDomainsEl) totalDomainsEl.textContent = statsResponse.data.totalDomains;
+            }
             
         } else {
             subjectsGrid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #666;">No subjects available yet.</div>';

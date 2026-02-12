@@ -4,6 +4,26 @@ import { protect, authorize } from '../middleware/auth.js';
 
 const router = express.Router();
 
+// @route   GET /api/users/staff
+// @desc    Get all staff members (owners, editors, creators)
+// @access  Public
+router.get('/staff', async (req, res) => {
+  try {
+    const staff = await User.find({
+      userType: { $in: ['owner', 'editor', 'creator'] }
+    })
+      .select('username email firstName lastName userType')
+      .sort({ userType: 1, createdAt: 1 });
+
+    res.json({
+      success: true,
+      data: staff
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
 // @route   GET /api/users/me
 // @desc    Get current user profile
 // @access  Private

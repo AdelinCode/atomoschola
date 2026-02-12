@@ -231,6 +231,7 @@ function generateSlug(text) {
 async function handleLessonSubmit(e) {
     e.preventDefault();
     
+    const user = window.API.getUser();
     const type = document.getElementById('lessonType').value;
     const category = document.getElementById('lessonCategory').value;
     
@@ -283,21 +284,47 @@ async function handleLessonSubmit(e) {
             content: content,
             type: type,
             category: category,
-            isPremium: document.getElementById('lessonPremium').checked,
+            isPremium: false,
             attachments: attachments.map(att => ({
                 name: att.name,
                 url: att.url,
                 type: att.type
-            }))
+            })),
+            creators: [user._id],
+            status: user.userType === 'owner' ? 'published' : 'pending_review'
         };
         
-        const response = await window.API.lessons.create(lessonData);
-        
-        if (response.success) {
-            alert('Lesson created successfully!');
-            window.location.href = `lesson.html?id=${response.data._id}`;
+        if (user.userType === 'owner') {
+            const response = await window.API.lessons.create(lessonData);
+            
+            if (response.success) {
+                alert('Lesson created successfully!');
+                window.location.href = `lesson.html?id=${response.data._id}`;
+            } else {
+                alert('Error creating lesson: ' + response.message);
+            }
         } else {
-            alert('Error creating lesson: ' + response.message);
+            const apiUrl = window.CONFIG ? window.CONFIG.API_BASE_URL : 'http://localhost:5000/api';
+            const response = await fetch(`${apiUrl}/pending-requests`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${window.API.getToken()}`
+                },
+                body: JSON.stringify({
+                    type: 'lesson',
+                    data: lessonData
+                })
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                alert('Lesson request submitted for approval! The owner will review it soon.');
+                window.location.href = 'index.html';
+            } else {
+                alert('Error submitting request: ' + result.message);
+            }
         }
     } catch (error) {
         console.error('Error:', error);
@@ -322,34 +349,62 @@ async function handleDomainSubmit(e) {
     loading.classList.add('active');
     
     try {
+        const user = window.API.getUser();
         const subjectId = document.getElementById('domainSubject').value;
         const domainData = {
             name: document.getElementById('domainName').value,
             slug: document.getElementById('domainSlug').value,
-            description: document.getElementById('domainDescription').value
+            description: document.getElementById('domainDescription').value,
+            subject: subjectId
         };
         
-        const apiUrl = window.CONFIG ? window.CONFIG.API_BASE_URL : 'http://localhost:5000/api';
-        const response = await fetch(`${apiUrl}/subjects/${subjectId}/domains`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${window.API.getToken()}`
-            },
-            body: JSON.stringify(domainData)
-        });
-        
-        const result = await response.json();
-        
-        if (result.success) {
-            alert('Domain created successfully!');
-            window.location.href = 'index.html';
+        // If user is owner, create directly. Otherwise, send pending request
+        if (user.userType === 'owner') {
+            const apiUrl = window.CONFIG ? window.CONFIG.API_BASE_URL : 'http://localhost:5000/api';
+            const response = await fetch(`${apiUrl}/subjects/${subjectId}/domains`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${window.API.getToken()}`
+                },
+                body: JSON.stringify(domainData)
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                alert('Domain created successfully!');
+                window.location.href = 'index.html';
+            } else {
+                alert('Error creating domain: ' + result.message);
+            }
         } else {
-            alert('Error creating domain: ' + result.message);
+            // Send pending request
+            const apiUrl = window.CONFIG ? window.CONFIG.API_BASE_URL : 'http://localhost:5000/api';
+            const response = await fetch(`${apiUrl}/pending-requests`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${window.API.getToken()}`
+                },
+                body: JSON.stringify({
+                    type: 'domain',
+                    data: domainData
+                })
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                alert('Domain request submitted for approval! The owner will review it soon.');
+                window.location.href = 'index.html';
+            } else {
+                alert('Error submitting request: ' + result.message);
+            }
         }
     } catch (error) {
         console.error('Error:', error);
-        alert('Error creating domain: ' + error.message);
+        alert('Error: ' + error.message);
     } finally {
         loading.classList.remove('active');
     }
@@ -363,23 +418,58 @@ async function handleCategorySubmit(e) {
     loading.classList.add('active');
     
     try {
+        const user = window.API.getUser();
         const subjectId = document.getElementById('categorySubject').value;
         const domainId = document.getElementById('categoryDomain').value;
         const categoryData = {
             name: document.getElementById('categoryName').value,
             slug: document.getElementById('categorySlug').value,
-            description: document.getElementById('categoryDescription').value
+            description: document.getElementById('categoryDescription').value,
+            domain: domainId
         };
         
         const apiUrl = window.CONFIG ? window.CONFIG.API_BASE_URL : 'http://localhost:5000/api';
-        const response = await fetch(`${apiUrl}/subjects/${subjectId}/domains/${domainId}/categories`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${window.API.getToken()}`
-            },
-            body: JSON.stringify(categoryData)
-        });
+        
+        if (user.userType === 'owner') {
+            const response = await fetch(`${apiUrl}/subjects/${subjectId}/domains/${domainId}/categories`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${window.API.getToken()}`
+                },
+                body: JSON.stringify(categoryData)
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                alert('Category created successfully!');
+                window.location.href = 'index.html';
+            } else {
+                alert('Error creating category: ' + result.message);
+            }
+        } else {
+            const response = await fetch(`${apiUrl}/pending-requests`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${window.API.getToken()}`
+                },
+                body: JSON.stringify({
+                    type: 'category',
+                    data: categoryData
+                })
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                alert('Category request submitted for approval! The owner will review it soon.');
+                window.location.href = 'index.html';
+            } else {
+                alert('Error submitting request: ' + result.message);
+            }
+        }
         
         const result = await response.json();
         

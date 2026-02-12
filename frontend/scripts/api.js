@@ -165,6 +165,11 @@ const adminAPI = {
   deleteLesson: (id) => apiRequest(`/admin/lesson/${id}`, { method: 'DELETE' })
 };
 
+// Stats API
+const statsAPI = {
+  getStats: () => apiRequest('/stats')
+};
+
 // Export API
 window.API = {
   auth: authAPI,
@@ -173,7 +178,9 @@ window.API = {
   users: usersAPI,
   inviteCodes: inviteCodesAPI,
   admin: adminAPI,
+  stats: statsAPI,
   getToken,
   getUser,
-  isAuthenticated: () => !!getToken()
+  isAuthenticated: () => !!getToken(),
+  clearCache: () => apiCache.clear()
 };
