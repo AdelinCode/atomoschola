@@ -4,6 +4,7 @@ import Subject from '../models/Subject.js';
 import Domain from '../models/Domain.js';
 import Category from '../models/Category.js';
 import Lesson from '../models/Lesson.js';
+import User from '../models/User.js';
 import { protect, authorize } from '../middleware/auth.js';
 
 const router = express.Router();
@@ -98,12 +99,21 @@ router.put('/:id/approve', protect, authorize('owner'), async (req, res) => {
       
       createdResource = category;
     } else if (request.type === 'lesson') {
-      const lesson = await Lesson.create(request.data);
+      // Set status to published when approved
+      const lessonData = { ...request.data, status: 'published' };
+      const lesson = await Lesson.create(lessonData);
       
       // Add to category
       if (request.data.category) {
         await Category.findByIdAndUpdate(request.data.category, {
           $push: { lessons: lesson._id }
+        });
+      }
+      
+      // Add to creator's created lessons
+      if (request.requestedBy) {
+        await User.findByIdAndUpdate(request.requestedBy, {
+          $push: { createdLessons: lesson._id }
         });
       }
       

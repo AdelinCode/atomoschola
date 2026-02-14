@@ -214,6 +214,9 @@ function updateLessonHeader() {
     }
     
     if (dateElement) dateElement.textContent = window.EduPlatform.formatDate(currentLesson.createdAt);
+    
+    // Update bookmark button state
+    updateBookmarkButton();
 }
 
 function updateBreadcrumb() {
@@ -559,6 +562,33 @@ function startLesson() {
     }
 }
 
+async function updateBookmarkButton() {
+    const user = window.API.getUser();
+    const bookmarkBtn = document.getElementById('bookmarkBtn');
+    
+    if (!bookmarkBtn || !user || !currentLesson) return;
+    
+    try {
+        // Get user profile to check bookmarks
+        const response = await window.API.users.getProfile();
+        if (response.success && response.data.bookmarkedLessons) {
+            const isBookmarked = response.data.bookmarkedLessons.some(
+                lesson => (lesson._id || lesson) === currentLesson._id
+            );
+            
+            if (isBookmarked) {
+                bookmarkBtn.innerHTML = '<i class="fas fa-bookmark"></i> Bookmarked';
+                bookmarkBtn.style.background = '#333';
+            } else {
+                bookmarkBtn.innerHTML = '<i class="far fa-bookmark"></i> Bookmark';
+                bookmarkBtn.style.background = '';
+            }
+        }
+    } catch (error) {
+        console.error('Error checking bookmark status:', error);
+    }
+}
+
 async function toggleBookmark() {
     const user = window.API.getUser();
     if (!user) {
@@ -578,15 +608,15 @@ async function toggleBookmark() {
         if (isBookmarked) {
             response = await window.API.users.removeBookmark(currentLesson._id);
             if (response.success) {
-                icon.className = 'far fa-bookmark';
                 bookmarkBtn.innerHTML = '<i class="far fa-bookmark"></i> Bookmark';
+                bookmarkBtn.style.background = '';
                 alert('Lesson removed from bookmarks');
             }
         } else {
             response = await window.API.users.bookmarkLesson(currentLesson._id);
             if (response.success) {
-                icon.className = 'fas fa-bookmark';
                 bookmarkBtn.innerHTML = '<i class="fas fa-bookmark"></i> Bookmarked';
+                bookmarkBtn.style.background = '#333';
                 alert('Lesson added to bookmarks');
             }
         }
