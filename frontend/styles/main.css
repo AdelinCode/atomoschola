@@ -37,18 +37,25 @@ body {
     height: 70px;
 }
 
+.logo {
+    flex-shrink: 0;
+    min-width: fit-content;
+}
+
 .logo a {
     display: flex;
     align-items: center;
     text-decoration: none;
     color: #212529;
-    font-size: 24px;
+    font-size: 20px;
     font-weight: 700;
+    white-space: nowrap;
+    gap: 8px;
 }
 
 .logo i {
-    margin-right: 8px;
     color: #495057;
+    flex-shrink: 0;
 }
 
 /* Search Bar */
