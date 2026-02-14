@@ -1,5 +1,6 @@
 import express from 'express';
 import PendingRequest from '../models/PendingRequest.js';
+import Notification from '../models/Notification.js';
 import Subject from '../models/Subject.js';
 import Domain from '../models/Domain.js';
 import Category from '../models/Category.js';
@@ -127,6 +128,24 @@ router.put('/:id/approve', protect, authorize('owner', 'staff'), async (req, res
     request.reviewNote = req.body.note || '';
     await request.save();
 
+    // Create notification for the user
+    const notificationMessages = {
+      lesson: `Your lesson "${request.data.title}" has been approved by the commission!`,
+      domain: `Your domain "${request.data.name}" has been approved by the commission!`,
+      category: `Your category "${request.data.name}" has been approved by the commission!`
+    };
+
+    await Notification.create({
+      user: request.requestedBy,
+      type: `${request.type}_approved`,
+      title: `${request.type.charAt(0).toUpperCase() + request.type.slice(1)} Approved`,
+      message: notificationMessages[request.type],
+      relatedItem: createdResource._id,
+      relatedModel: request.type.charAt(0).toUpperCase() + request.type.slice(1),
+      reviewedBy: req.user._id,
+      isRead: false
+    });
+
     res.json({
       success: true,
       message: `${request.type} approved and created successfully`,
@@ -160,6 +179,24 @@ router.put('/:id/reject', protect, authorize('owner', 'staff'), async (req, res)
     request.reviewedAt = new Date();
     request.reviewNote = req.body.note || '';
     await request.save();
+
+    // Create notification for the user
+    const notificationMessages = {
+      lesson: `Your lesson "${request.data.title}" was rejected by the commission.`,
+      domain: `Your domain "${request.data.name}" was rejected by the commission.`,
+      category: `Your category "${request.data.name}" was rejected by the commission.`
+    };
+
+    await Notification.create({
+      user: request.requestedBy,
+      type: `${request.type}_rejected`,
+      title: `${request.type.charAt(0).toUpperCase() + request.type.slice(1)} Rejected`,
+      message: notificationMessages[request.type] + (req.body.note ? ` Reason: ${req.body.note}` : ''),
+      relatedItem: request._id,
+      relatedModel: 'PendingRequest',
+      reviewedBy: req.user._id,
+      isRead: false
+    });
 
     res.json({
       success: true,

@@ -78,6 +78,15 @@ function renderAuthenticatedNav() {
         </a>
     `;
     
+    // Add Notifications button for authenticated users
+    navItems += `
+        <button class="nav-item" onclick="showNotificationsModal()" style="background: none; border: none; cursor: pointer; position: relative; padding: 8px 16px;">
+            <i class="fas fa-bell"></i>
+            Inbox
+            <span id="notificationBadge" style="display: none; position: absolute; top: 4px; right: 8px; background: #dc3545; color: white; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; font-weight: bold; align-items: center; justify-content: center;">0</span>
+        </button>
+    `;
+    
     // Add role-specific navigation
     // Add Create Content button for creators, editors, staff, and owners
     if (['creator', 'editor', 'staff', 'owner'].includes(currentUser.userType)) {
