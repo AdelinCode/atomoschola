@@ -31,7 +31,7 @@ const userSchema = new mongoose.Schema({
   },
   userType: {
     type: String,
-    enum: ['user', 'creator', 'editor', 'owner'],
+    enum: ['user', 'creator', 'editor', 'staff', 'owner'],
     default: 'user'
   },
   inviteCode: {

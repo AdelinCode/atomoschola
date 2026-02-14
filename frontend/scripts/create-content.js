@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
     
     // Check if user has permission to create content
-    if (!['creator', 'editor', 'owner'].includes(user.userType)) {
+    if (!['creator', 'editor', 'staff', 'owner'].includes(user.userType)) {
         alert('You do not have permission to create content');
         window.location.href = 'index.html';
         return;
@@ -291,10 +291,10 @@ async function handleLessonSubmit(e) {
                 type: att.type
             })),
             creators: [user._id],
-            status: user.userType === 'owner' ? 'published' : 'pending_review'
+            status: (user.userType === 'owner' || user.userType === 'staff') ? 'published' : 'pending_review'
         };
         
-        if (user.userType === 'owner') {
+        if (user.userType === 'owner' || user.userType === 'staff') {
             const response = await window.API.lessons.create(lessonData);
             
             if (response.success) {
@@ -358,8 +358,8 @@ async function handleDomainSubmit(e) {
             subject: subjectId
         };
         
-        // If user is owner, create directly. Otherwise, send pending request
-        if (user.userType === 'owner') {
+        // If user is owner or staff, create directly. Otherwise, send pending request
+        if (user.userType === 'owner' || user.userType === 'staff') {
             const apiUrl = window.CONFIG ? window.CONFIG.API_BASE_URL : 'http://localhost:5000/api';
             const response = await fetch(`${apiUrl}/subjects/${subjectId}/domains`, {
                 method: 'POST',
@@ -430,7 +430,7 @@ async function handleCategorySubmit(e) {
         
         const apiUrl = window.CONFIG ? window.CONFIG.API_BASE_URL : 'http://localhost:5000/api';
         
-        if (user.userType === 'owner') {
+        if (user.userType === 'owner' || user.userType === 'staff') {
             const response = await fetch(`${apiUrl}/subjects/${subjectId}/domains/${domainId}/categories`, {
                 method: 'POST',
                 headers: {
@@ -469,15 +469,6 @@ async function handleCategorySubmit(e) {
             } else {
                 alert('Error submitting request: ' + result.message);
             }
-        }
-        
-        const result = await response.json();
-        
-        if (result.success) {
-            alert('Category created successfully!');
-            window.location.href = 'index.html';
-        } else {
-            alert('Error creating category: ' + result.message);
         }
     } catch (error) {
         console.error('Error:', error);

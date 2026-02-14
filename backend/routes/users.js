@@ -10,7 +10,7 @@ const router = express.Router();
 router.get('/staff', async (req, res) => {
   try {
     const staff = await User.find({
-      userType: { $in: ['owner', 'editor', 'creator'] }
+      userType: { $in: ['owner', 'editor', 'creator', 'staff'] }
     })
       .select('username email firstName lastName userType')
       .sort({ userType: 1, createdAt: 1 });
@@ -184,7 +184,7 @@ router.put('/:id/type', protect, authorize('owner'), async (req, res) => {
   try {
     const { userType } = req.body;
     
-    if (!['user', 'creator', 'editor'].includes(userType)) {
+    if (!['user', 'creator', 'editor', 'staff'].includes(userType)) {
       return res.status(400).json({ 
         success: false, 
         message: 'Invalid user type' 

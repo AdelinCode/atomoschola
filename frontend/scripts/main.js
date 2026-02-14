@@ -79,12 +79,22 @@ function renderAuthenticatedNav() {
     `;
     
     // Add role-specific navigation
-    // Add Create Content button for creators, editors, and owners
-    if (['creator', 'editor', 'owner'].includes(currentUser.userType)) {
+    // Add Create Content button for creators, editors, staff, and owners
+    if (['creator', 'editor', 'staff', 'owner'].includes(currentUser.userType)) {
         navItems += `
             <a href="create-content.html" class="nav-item">
                 <i class="fas fa-plus-circle"></i>
                 Create
+            </a>
+        `;
+    }
+    
+    // Add Staff Dashboard for staff users
+    if (currentUser.userType === 'staff') {
+        navItems += `
+            <a href="staff-dashboard.html" class="nav-item">
+                <i class="fas fa-tasks"></i>
+                Dashboard
             </a>
         `;
     }

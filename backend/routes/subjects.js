@@ -175,9 +175,9 @@ router.delete('/:id', protect, authorize('owner'), async (req, res) => {
 });
 
 // @route   POST /api/subjects/:subjectId/domains
-// @desc    Create domain for subject (owner/editor)
+// @desc    Create domain for subject (owner/editor/staff)
 // @access  Private
-router.post('/:subjectId/domains', protect, authorize('owner', 'editor'), async (req, res) => {
+router.post('/:subjectId/domains', protect, authorize('owner', 'editor', 'staff'), async (req, res) => {
   try {
     const { name, slug, description } = req.body;
 
@@ -209,9 +209,9 @@ router.post('/:subjectId/domains', protect, authorize('owner', 'editor'), async 
 });
 
 // @route   POST /api/subjects/:subjectId/domains/:domainId/categories
-// @desc    Create category for domain (owner/editor)
+// @desc    Create category for domain (owner/editor/staff)
 // @access  Private
-router.post('/:subjectId/domains/:domainId/categories', protect, authorize('owner', 'editor'), async (req, res) => {
+router.post('/:subjectId/domains/:domainId/categories', protect, authorize('owner', 'editor', 'staff'), async (req, res) => {
   try {
     const { name, slug, description } = req.body;
 

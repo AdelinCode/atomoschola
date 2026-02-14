@@ -38,8 +38,8 @@ router.post('/', protect, authorize('creator', 'editor', 'owner'), async (req, r
 
 // @route   GET /api/pending-requests
 // @desc    Get all pending requests
-// @access  Private (owner only)
-router.get('/', protect, authorize('owner'), async (req, res) => {
+// @access  Private (owner and staff)
+router.get('/', protect, authorize('owner', 'staff'), async (req, res) => {
   try {
     const { status } = req.query;
     const filter = status ? { status } : { status: 'pending' };
@@ -60,8 +60,8 @@ router.get('/', protect, authorize('owner'), async (req, res) => {
 
 // @route   PUT /api/pending-requests/:id/approve
 // @desc    Approve a pending request
-// @access  Private (owner only)
-router.put('/:id/approve', protect, authorize('owner'), async (req, res) => {
+// @access  Private (owner and staff)
+router.put('/:id/approve', protect, authorize('owner', 'staff'), async (req, res) => {
   try {
     const request = await PendingRequest.findById(req.params.id);
 
@@ -142,8 +142,8 @@ router.put('/:id/approve', protect, authorize('owner'), async (req, res) => {
 
 // @route   PUT /api/pending-requests/:id/reject
 // @desc    Reject a pending request
-// @access  Private (owner only)
-router.put('/:id/reject', protect, authorize('owner'), async (req, res) => {
+// @access  Private (owner and staff)
+router.put('/:id/reject', protect, authorize('owner', 'staff'), async (req, res) => {
   try {
     const request = await PendingRequest.findById(req.params.id);
 

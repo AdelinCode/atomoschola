@@ -72,6 +72,7 @@ function displayUsers(users) {
                         <option value="user">User</option>
                         <option value="creator">Creator</option>
                         <option value="editor">Editor</option>
+                        <option value="staff">Staff</option>
                     </select>
                     <button class="btn btn-secondary btn-small" onclick="deleteUser('${user._id}', '${user.username}')" style="background: #dc3545; color: white; border: none;">
                         <i class="fas fa-trash"></i>

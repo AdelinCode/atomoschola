@@ -117,9 +117,9 @@ router.get('/:id', async (req, res) => {
 });
 
 // @route   POST /api/lessons
-// @desc    Create lesson (creator/editor/owner)
+// @desc    Create lesson (creator/editor/staff/owner)
 // @access  Private
-router.post('/', protect, authorize('creator', 'editor', 'owner'), async (req, res) => {
+router.post('/', protect, authorize('creator', 'editor', 'staff', 'owner'), async (req, res) => {
   try {
     const { title, slug, description, content, type, category, isPremium, attachments } = req.body;
 
@@ -141,7 +141,7 @@ router.post('/', protect, authorize('creator', 'editor', 'owner'), async (req, r
       isPremium: isPremium || false,
       attachments: attachments || [],
       creators: [req.user._id],
-      status: req.user.userType === 'owner' ? 'published' : 'pending_review'
+      status: (req.user.userType === 'owner' || req.user.userType === 'staff') ? 'published' : 'pending_review'
     });
 
     // Add to category
@@ -166,9 +166,9 @@ router.post('/', protect, authorize('creator', 'editor', 'owner'), async (req, r
 });
 
 // @route   PUT /api/lessons/:id
-// @desc    Update lesson (creator/editor/owner)
+// @desc    Update lesson (creator/editor/staff/owner)
 // @access  Private
-router.put('/:id', protect, authorize('creator', 'editor', 'owner'), async (req, res) => {
+router.put('/:id', protect, authorize('creator', 'editor', 'staff', 'owner'), async (req, res) => {
   try {
     let lesson = await Lesson.findById(req.params.id);
 
@@ -181,7 +181,7 @@ router.put('/:id', protect, authorize('creator', 'editor', 'owner'), async (req,
 
     // Check permissions
     const isCreator = lesson.creators.some(creator => creator.toString() === req.user._id.toString());
-    const isEditor = req.user.userType === 'editor' || req.user.userType === 'owner';
+    const isEditor = req.user.userType === 'editor' || req.user.userType === 'staff' || req.user.userType === 'owner';
 
     if (!isCreator && !isEditor) {
       return res.status(403).json({ 
@@ -295,9 +295,9 @@ router.post('/:id/rate', protect, async (req, res) => {
 });
 
 // @route   PUT /api/lessons/:id/status
-// @desc    Update lesson status (editor/owner)
+// @desc    Update lesson status (editor/staff/owner)
 // @access  Private
-router.put('/:id/status', protect, authorize('editor', 'owner'), async (req, res) => {
+router.put('/:id/status', protect, authorize('editor', 'staff', 'owner'), async (req, res) => {
   try {
     const { status } = req.body;
 
