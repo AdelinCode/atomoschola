@@ -11,18 +11,36 @@ import { protect, authorize } from '../middleware/auth.js';
 const router = express.Router();
 
 // @route   GET /api/commission/members
-// @desc    Get all creator commission members
+// @desc    Get all commission members (creator and editor)
 // @access  Public
 router.get('/members', async (req, res) => {
   try {
-    const members = await User.find({ isCreatorCommissionMember: true })
+    const creatorMembers = await User.find({ isCreatorCommissionMember: true })
       .select('username email firstName lastName userType')
       .sort({ createdAt: 1 });
 
+    const editorMembers = await User.find({ isEditorCommissionMember: true })
+      .select('username email firstName lastName userType')
+      .sort({ createdAt: 1 });
+
+    // Add commissionType to each member
+    const creatorMembersWithType = creatorMembers.map(member => ({
+      ...member.toObject(),
+      commissionType: 'creator'
+    }));
+
+    const editorMembersWithType = editorMembers.map(member => ({
+      ...member.toObject(),
+      commissionType: 'editor'
+    }));
+
+    // Combine both arrays
+    const allMembers = [...creatorMembersWithType, ...editorMembersWithType];
+
     res.json({
       success: true,
-      count: members.length,
-      data: members
+      count: allMembers.length,
+      data: allMembers
     });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });

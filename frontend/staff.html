@@ -240,16 +240,30 @@
             </div>
         </div>
 
-        <!-- Commission Section -->
-        <div class="role-section" id="commissionSection" style="display: none;">
+        <!-- Creator Commission Section -->
+        <div class="role-section" id="creatorCommissionSection" style="display: none;">
             <div class="role-header commission">
                 <div class="role-icon commission">
                     <i class="fas fa-gavel"></i>
                 </div>
-                <h2 class="role-title">Commission Members</h2>
-                <span class="role-count" id="commissionCount">0</span>
+                <h2 class="role-title">Creator Commission Members</h2>
+                <span class="role-count" id="creatorCommissionCount">0</span>
             </div>
-            <div class="staff-grid" id="commissionGrid">
+            <div class="staff-grid" id="creatorCommissionGrid">
+                <div class="empty-state">Loading...</div>
+            </div>
+        </div>
+
+        <!-- Editor Commission Section -->
+        <div class="role-section" id="editorCommissionSection" style="display: none;">
+            <div class="role-header commission">
+                <div class="role-icon commission">
+                    <i class="fas fa-balance-scale"></i>
+                </div>
+                <h2 class="role-title">Editor Commission Members</h2>
+                <span class="role-count" id="editorCommissionCount">0</span>
+            </div>
+            <div class="staff-grid" id="editorCommissionGrid">
                 <div class="empty-state">Loading...</div>
             </div>
         </div>
@@ -340,12 +354,48 @@
                 const data = await response.json();
 
                 if (data.success && data.data.length > 0) {
-                    document.getElementById('commissionSection').style.display = 'block';
-                    displayRole('commission', data.data);
+                    // Separate creator and editor commission members
+                    const creatorCommission = data.data.filter(u => u.commissionType === 'creator');
+                    const editorCommission = data.data.filter(u => u.commissionType === 'editor');
+
+                    // Display creator commission
+                    if (creatorCommission.length > 0) {
+                        document.getElementById('creatorCommissionSection').style.display = 'block';
+                        displayCommissionRole('creatorCommission', creatorCommission);
+                    }
+
+                    // Display editor commission
+                    if (editorCommission.length > 0) {
+                        document.getElementById('editorCommissionSection').style.display = 'block';
+                        displayCommissionRole('editorCommission', editorCommission);
+                    }
                 }
             } catch (error) {
                 console.error('Error loading commission:', error);
             }
+        }
+
+        function displayCommissionRole(role, users) {
+            const grid = document.getElementById(`${role}Grid`);
+            const count = document.getElementById(`${role}Count`);
+            
+            count.textContent = users.length;
+
+            if (users.length === 0) {
+                grid.innerHTML = '<div class="empty-state">No commission members yet</div>';
+                return;
+            }
+
+            grid.innerHTML = users.map(user => {
+                const initials = getInitials(user.username || user.email);
+                return `
+                    <div class="staff-card commission">
+                        <div class="staff-avatar commission">${initials}</div>
+                        <div class="staff-name">${user.firstName && user.lastName ? user.firstName + ' ' + user.lastName : user.username}</div>
+                        <div class="staff-role commission">Commission Member</div>
+                    </div>
+                `;
+            }).join('');
         }
 
         // Load on page load

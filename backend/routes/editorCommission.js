@@ -4,6 +4,10 @@ import EditProposal from '../models/EditProposal.js';
 import ApprovedEdit from '../models/ApprovedEdit.js';
 import Notification from '../models/Notification.js';
 import Lesson from '../models/Lesson.js';
+import PendingRequest from '../models/PendingRequest.js';
+import Subject from '../models/Subject.js';
+import Domain from '../models/Domain.js';
+import Category from '../models/Category.js';
 import { protect, authorize } from '../middleware/auth.js';
 
 const router = express.Router();
@@ -393,6 +397,220 @@ router.delete('/approved-edits/:editId', protect, async (req, res) => {
     res.json({
       success: true,
       message: 'Edit deleted successfully'
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// @route   GET /api/editor-commission/pending-lessons
+// @desc    Get pending lessons created by creators (not editors)
+// @access  Private (editor commission members only)
+router.get('/pending-lessons', protect, async (req, res) => {
+  try {
+    // Check if user is editor commission member
+    if (!req.user.isEditorCommissionMember) {
+      return res.status(403).json({ 
+        success: false, 
+        message: 'Access denied. Editor commission members only.' 
+      });
+    }
+
+    // Get pending lesson requests where the requester is a creator (not editor)
+    const requests = await PendingRequest.find({ 
+      status: 'pending',
+      type: 'lesson',
+      requiresCommissionVote: true
+    })
+      .populate({
+        path: 'requestedBy',
+        select: 'username email firstName lastName userType'
+      })
+      .populate('votes.user', 'username')
+      .sort('-createdAt');
+
+    // Filter only lessons created by creators (not editors)
+    const creatorLessons = requests.filter(req => 
+      req.requestedBy && req.requestedBy.userType === 'creator'
+    );
+
+    res.json({
+      success: true,
+      data: creatorLessons
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// @route   POST /api/editor-commission/vote-lesson/:requestId
+// @desc    Vote on a pending lesson from creator
+// @access  Private (editor commission members only)
+router.post('/vote-lesson/:requestId', protect, async (req, res) => {
+  try {
+    // Check if user is editor commission member
+    if (!req.user.isEditorCommissionMember) {
+      return res.status(403).json({ 
+        success: false, 
+        message: 'Access denied. Editor commission members only.' 
+      });
+    }
+
+    const { vote } = req.body;
+
+    if (!['yes', 'no'].includes(vote)) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Vote must be "yes" or "no"' 
+      });
+    }
+
+    const request = await PendingRequest.findById(req.params.requestId)
+      .populate('requestedBy', 'username email userType');
+
+    if (!request) {
+      return res.status(404).json({ 
+        success: false, 
+        message: 'Request not found' 
+      });
+    }
+
+    if (request.status !== 'pending') {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Request already processed' 
+      });
+    }
+
+    if (request.type !== 'lesson') {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'This endpoint is only for lesson requests' 
+      });
+    }
+
+    // Check if requester is a creator
+    if (request.requestedBy.userType !== 'creator') {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'This lesson was not created by a creator' 
+      });
+    }
+
+    // Check if user already voted
+    const existingVote = request.votes.find(
+      v => v.user.toString() === req.user._id.toString()
+    );
+
+    if (existingVote) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'You have already voted on this request' 
+      });
+    }
+
+    // Add vote
+    request.votes.push({
+      user: req.user._id,
+      vote: vote,
+      votedAt: new Date()
+    });
+
+    await request.save();
+
+    // Check if all editor commission members have voted
+    const commissionCount = await User.countDocuments({ isEditorCommissionMember: true });
+    
+    // Commission must have exactly 7 members
+    if (commissionCount < 7) {
+      return res.json({
+        success: true,
+        message: 'Vote recorded. Note: Editor commission needs 7 members to make decisions.',
+        votesCount: request.votes.length,
+        totalNeeded: 7,
+        currentCommissionSize: commissionCount
+      });
+    }
+    
+    // Check if all 7 members have voted
+    if (request.votes.length >= 7) {
+      // Count votes
+      const yesVotes = request.votes.filter(v => v.vote === 'yes').length;
+      const noVotes = request.votes.filter(v => v.vote === 'no').length;
+
+      // Majority decision (need at least 4 YES votes to approve)
+      if (yesVotes >= 4) {
+        // Approve request
+        const lessonData = { ...request.data, status: 'published' };
+        const lesson = await Lesson.create(lessonData);
+        
+        if (request.data.category) {
+          await Category.findByIdAndUpdate(request.data.category, {
+            $push: { lessons: lesson._id }
+          });
+        }
+        
+        if (request.requestedBy) {
+          // Add lesson to user's created lessons
+          await User.findByIdAndUpdate(request.requestedBy._id, {
+            $push: { createdLessons: lesson._id }
+          });
+        }
+
+        request.status = 'approved';
+        request.reviewedAt = new Date();
+        request.reviewNote = `Approved by editor commission vote (${yesVotes}-${noVotes})`;
+        await request.save();
+
+        // Create notification
+        await Notification.create({
+          user: request.requestedBy._id,
+          type: 'lesson_approved',
+          title: 'Lesson Approved by Editor Commission',
+          message: `Your lesson "${request.data.title}" has been approved by the editor commission! (Vote: ${yesVotes}-${noVotes})`,
+          relatedItem: lesson._id,
+          relatedModel: 'Lesson',
+          isRead: false
+        });
+
+        return res.json({
+          success: true,
+          message: 'Request approved by editor commission',
+          status: 'approved',
+          votes: { yes: yesVotes, no: noVotes }
+        });
+      } else {
+        // Reject request
+        request.status = 'rejected';
+        request.reviewedAt = new Date();
+        request.reviewNote = `Rejected by editor commission vote (${yesVotes}-${noVotes})`;
+        await request.save();
+
+        // Create notification
+        await Notification.create({
+          user: request.requestedBy._id,
+          type: 'lesson_rejected',
+          title: 'Lesson Rejected by Editor Commission',
+          message: `Your lesson "${request.data.title}" was rejected by the editor commission. (Vote: ${yesVotes}-${noVotes})`,
+          relatedItem: request._id,
+          relatedModel: 'PendingRequest',
+          isRead: false
+        });
+
+        return res.json({
+          success: true,
+          message: 'Request rejected by editor commission',
+          status: 'rejected',
+          votes: { yes: yesVotes, no: noVotes }
+        });
+      }
+    }
+
+    res.json({
+      success: true,
+      message: 'Vote recorded',
+      votesCount: request.votes.length,
+      totalNeeded: commissionCount
     });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });

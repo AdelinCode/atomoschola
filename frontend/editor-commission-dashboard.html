@@ -130,8 +130,12 @@
         <!-- Tabs -->
         <div class="tabs">
             <button class="tab active" onclick="switchTab('pending')">
-                <i class="fas fa-vote-yea"></i> Pending Votes
+                <i class="fas fa-vote-yea"></i> Pending Edit Proposals
                 <span id="pendingBadge" style="background: #6f42c1; color: white; padding: 2px 8px; border-radius: 12px; font-size: 12px; margin-left: 8px;">0</span>
+            </button>
+            <button class="tab" onclick="switchTab('lessons')">
+                <i class="fas fa-book"></i> Pending Lessons
+                <span id="lessonsBadge" style="background: #f57c00; color: white; padding: 2px 8px; border-radius: 12px; font-size: 12px; margin-left: 8px;">0</span>
             </button>
             <button class="tab" onclick="switchTab('approved')">
                 <i class="fas fa-check-circle"></i> Approved Edits
@@ -144,6 +148,15 @@
             <div class="dashboard-card">
                 <div id="pendingProposalsList" style="max-height: 600px; overflow-y: auto;">
                     <p style="text-align: center; color: #6c757d;">Loading proposals...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pending Lessons Tab -->
+        <div id="lessonsTab" class="tab-content">
+            <div class="dashboard-card">
+                <div id="pendingLessonsList" style="max-height: 600px; overflow-y: auto;">
+                    <p style="text-align: center; color: #6c757d;">Loading lessons...</p>
                 </div>
             </div>
         </div>
