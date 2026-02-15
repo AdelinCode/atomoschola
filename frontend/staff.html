@@ -47,6 +47,7 @@
         .role-header.editor { border-color: #17a2b8; }
         .role-header.creator { border-color: #ffc107; }
         .role-header.staff { border-color: #6f42c1; }
+        .role-header.commission { border-color: #6f42c1; }
         .role-icon {
             width: 60px;
             height: 60px;
@@ -62,6 +63,7 @@
         .role-icon.editor { background: linear-gradient(135deg, #17a2b8 0%, #138496 100%); }
         .role-icon.creator { background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%); }
         .role-icon.staff { background: linear-gradient(135deg, #6f42c1 0%, #5a32a3 100%); }
+        .role-icon.commission { background: linear-gradient(135deg, #6f42c1 0%, #5a32a3 100%); }
         .role-title {
             font-size: 32px;
             font-weight: 700;
@@ -95,6 +97,7 @@
         .staff-card.editor:hover { border-color: #17a2b8; }
         .staff-card.creator:hover { border-color: #ffc107; }
         .staff-card.staff:hover { border-color: #6f42c1; }
+        .staff-card.commission:hover { border-color: #6f42c1; }
         .staff-avatar {
             width: 80px;
             height: 80px;
@@ -111,6 +114,7 @@
         .staff-avatar.editor { background: linear-gradient(135deg, #17a2b8 0%, #138496 100%); }
         .staff-avatar.creator { background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%); }
         .staff-avatar.staff { background: linear-gradient(135deg, #6f42c1 0%, #5a32a3 100%); }
+        .staff-avatar.commission { background: linear-gradient(135deg, #6f42c1 0%, #5a32a3 100%); }
         .staff-name {
             font-size: 20px;
             font-weight: 700;
@@ -128,6 +132,7 @@
         .staff-role.editor { background: #e7f6f8; color: #17a2b8; }
         .staff-role.creator { background: #fff8e1; color: #ffc107; }
         .staff-role.staff { background: #f3e5f5; color: #6f42c1; }
+        .staff-role.commission { background: #f3e5f5; color: #6f42c1; }
         .back-link {
             display: inline-flex;
             align-items: center;
@@ -234,6 +239,20 @@
                 <div class="empty-state">Loading...</div>
             </div>
         </div>
+
+        <!-- Commission Section -->
+        <div class="role-section" id="commissionSection" style="display: none;">
+            <div class="role-header commission">
+                <div class="role-icon commission">
+                    <i class="fas fa-gavel"></i>
+                </div>
+                <h2 class="role-title">Commission Members</h2>
+                <span class="role-count" id="commissionCount">0</span>
+            </div>
+            <div class="staff-grid" id="commissionGrid">
+                <div class="empty-state">Loading...</div>
+            </div>
+        </div>
     </main>
 
     <script src="scripts/config.js"></script>
@@ -274,6 +293,9 @@
                 document.getElementById('staffSection').style.display = 'block';
                 displayRole('staff', staffMembers);
             }
+            
+            // Load and display commission members
+            loadCommissionMembers();
         }
 
         function displayRole(role, users) {
@@ -308,6 +330,22 @@
                 document.getElementById(`${role}Grid`).innerHTML = 
                     '<div class="empty-state" style="color: #dc3545;">Error loading staff</div>';
             });
+        }
+        
+        // Load commission members
+        async function loadCommissionMembers() {
+            try {
+                const apiUrl = window.CONFIG ? window.CONFIG.API_BASE_URL : 'http://localhost:5000/api';
+                const response = await fetch(`${apiUrl}/commission/members`);
+                const data = await response.json();
+
+                if (data.success && data.data.length > 0) {
+                    document.getElementById('commissionSection').style.display = 'block';
+                    displayRole('commission', data.data);
+                }
+            } catch (error) {
+                console.error('Error loading commission:', error);
+            }
         }
 
         // Load on page load

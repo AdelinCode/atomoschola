@@ -17,11 +17,15 @@ router.post('/', protect, authorize('creator', 'editor', 'owner'), async (req, r
   try {
     const { type, data } = req.body;
 
+    // Only lessons require commission vote, domains and categories go to staff/owner
+    const requiresCommissionVote = type === 'lesson';
+
     const pendingRequest = await PendingRequest.create({
       type,
       data,
       requestedBy: req.user._id,
-      status: 'pending'
+      status: 'pending',
+      requiresCommissionVote
     });
 
     const populated = await PendingRequest.findById(pendingRequest._id)
@@ -48,6 +52,7 @@ router.get('/', protect, authorize('owner', 'staff'), async (req, res) => {
     const requests = await PendingRequest.find(filter)
       .populate('requestedBy', 'username email firstName lastName userType')
       .populate('reviewedBy', 'username email')
+      .populate('votes.user', 'username')
       .sort('-createdAt');
 
     res.json({
@@ -111,11 +116,31 @@ router.put('/:id/approve', protect, authorize('owner', 'staff'), async (req, res
         });
       }
       
-      // Add to creator's created lessons
+      // Add to creator's created lessons and promote editor to creator
       if (request.requestedBy) {
+        const requestUser = await User.findById(request.requestedBy);
+        
         await User.findByIdAndUpdate(request.requestedBy, {
           $push: { createdLessons: lesson._id }
         });
+        
+        // Promote editor to creator if they had an editor role
+        if (requestUser && requestUser.userType === 'editor') {
+          requestUser.userType = 'creator';
+          await requestUser.save();
+          
+          // Add notification about promotion
+          await Notification.create({
+            user: request.requestedBy,
+            type: 'lesson_approved',
+            title: 'Promoted to Creator!',
+            message: `Congratulations! Your lesson "${request.data.title}" was approved and you have been promoted to Creator!`,
+            relatedItem: lesson._id,
+            relatedModel: 'Lesson',
+            reviewedBy: req.user._id,
+            isRead: false
+          });
+        }
       }
       
       createdResource = lesson;

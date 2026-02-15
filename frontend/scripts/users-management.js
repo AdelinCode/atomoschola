@@ -61,7 +61,10 @@ function displayUsers(users) {
     container.innerHTML = users.map(user => `
         <div class="user-item">
             <div class="user-info">
-                <div class="user-name">${user.username}</div>
+                <div class="user-name">
+                    ${user.username}
+                    ${user.isCommissionMember ? '<span style="background: #6f42c1; color: white; padding: 2px 8px; border-radius: 12px; font-size: 11px; margin-left: 8px; font-weight: 600;">COMMISSION</span>' : ''}
+                </div>
                 <div class="user-email">${user.email}</div>
                 <span class="user-type-badge ${user.userType}">${user.userType.toUpperCase()}</span>
             </div>
@@ -74,6 +77,11 @@ function displayUsers(users) {
                         <option value="editor">Editor</option>
                         <option value="staff">Staff</option>
                     </select>
+                    ${['creator', 'editor'].includes(user.userType) ? `
+                        <button class="btn btn-secondary btn-small" onclick="toggleCommission('${user._id}', ${user.isCommissionMember})" style="background: ${user.isCommissionMember ? '#dc3545' : '#6f42c1'}; color: white; border: none; white-space: nowrap;">
+                            <i class="fas fa-${user.isCommissionMember ? 'user-minus' : 'user-plus'}"></i> ${user.isCommissionMember ? 'Remove' : 'Commission'}
+                        </button>
+                    ` : ''}
                     <button class="btn btn-secondary btn-small" onclick="deleteUser('${user._id}', '${user.username}')" style="background: #dc3545; color: white; border: none;">
                         <i class="fas fa-trash"></i>
                     </button>
@@ -168,6 +176,38 @@ window.deleteUser = async function(userId, username) {
     } catch (error) {
         console.error('Error deleting user:', error);
         alert('Error deleting user: ' + error.message);
+    }
+};
+
+// Toggle commission membership
+window.toggleCommission = async function(userId, isCurrentlyMember) {
+    const action = isCurrentlyMember ? 'remove from' : 'add to';
+    
+    if (!confirm(`Are you sure you want to ${action} the commission?`)) {
+        return;
+    }
+    
+    const apiUrl = window.CONFIG ? window.CONFIG.API_BASE_URL : 'http://localhost:5000/api';
+    
+    try {
+        const response = await fetch(`${apiUrl}/commission/toggle/${userId}`, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            }
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            alert(result.message + '\n\nNote: The user needs to logout and login again to see the Commission Dashboard button.');
+            loadUsers();
+        } else {
+            alert('Error: ' + result.message);
+        }
+    } catch (error) {
+        console.error('Error toggling commission:', error);
+        alert('Error: ' + error.message);
     }
 };
 

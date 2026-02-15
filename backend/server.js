@@ -14,6 +14,7 @@ import adminRoutes from './routes/admin.js';
 import statsRoutes from './routes/stats.js';
 import pendingRequestsRoutes from './routes/pendingRequests.js';
 import notificationsRoutes from './routes/notifications.js';
+import commissionRoutes from './routes/commission.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -50,6 +51,7 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/stats', statsRoutes);
 app.use('/api/pending-requests', pendingRequestsRoutes);
 app.use('/api/notifications', notificationsRoutes);
+app.use('/api/commission', commissionRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

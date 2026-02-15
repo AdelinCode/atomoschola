@@ -34,6 +34,10 @@ const userSchema = new mongoose.Schema({
     enum: ['user', 'creator', 'editor', 'staff', 'owner'],
     default: 'user'
   },
+  isCommissionMember: {
+    type: Boolean,
+    default: false
+  },
   inviteCode: {
     type: String,
     default: null

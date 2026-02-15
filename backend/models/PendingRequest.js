@@ -29,6 +29,25 @@ const pendingRequestSchema = new mongoose.Schema({
   },
   reviewNote: {
     type: String
+  },
+  votes: [{
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User'
+    },
+    vote: {
+      type: String,
+      enum: ['yes', 'no'],
+      required: true
+    },
+    votedAt: {
+      type: Date,
+      default: Date.now
+    }
+  }],
+  requiresCommissionVote: {
+    type: Boolean,
+    default: true
   }
 }, {
   timestamps: true

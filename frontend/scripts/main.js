@@ -108,6 +108,16 @@ function renderAuthenticatedNav() {
         `;
     }
     
+    // Add Commission Dashboard for commission members
+    if (currentUser.isCommissionMember) {
+        navItems += `
+            <a href="commission-dashboard.html" class="nav-item">
+                <i class="fas fa-gavel"></i>
+                Commission
+            </a>
+        `;
+    }
+    
     if (currentUser.userType === 'owner') {
         navItems += `
             <a href="dashboard.html" class="nav-item">
