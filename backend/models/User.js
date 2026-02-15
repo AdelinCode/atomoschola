@@ -34,7 +34,11 @@ const userSchema = new mongoose.Schema({
     enum: ['user', 'creator', 'editor', 'staff', 'owner'],
     default: 'user'
   },
-  isCommissionMember: {
+  isCreatorCommissionMember: {
+    type: Boolean,
+    default: false
+  },
+  isEditorCommissionMember: {
     type: Boolean,
     default: false
   },

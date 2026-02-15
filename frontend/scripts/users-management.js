@@ -63,7 +63,8 @@ function displayUsers(users) {
             <div class="user-info">
                 <div class="user-name">
                     ${user.username}
-                    ${user.isCommissionMember ? '<span style="background: #6f42c1; color: white; padding: 2px 8px; border-radius: 12px; font-size: 11px; margin-left: 8px; font-weight: 600;">COMMISSION</span>' : ''}
+                    ${user.isCreatorCommissionMember ? '<span style="background: #f57c00; color: white; padding: 2px 8px; border-radius: 12px; font-size: 11px; margin-left: 8px; font-weight: 600;">CREATOR COMMISSION</span>' : ''}
+                    ${user.isEditorCommissionMember ? '<span style="background: #6f42c1; color: white; padding: 2px 8px; border-radius: 12px; font-size: 11px; margin-left: 8px; font-weight: 600;">EDITOR COMMISSION</span>' : ''}
                 </div>
                 <div class="user-email">${user.email}</div>
                 <span class="user-type-badge ${user.userType}">${user.userType.toUpperCase()}</span>
@@ -77,9 +78,12 @@ function displayUsers(users) {
                         <option value="editor">Editor</option>
                         <option value="staff">Staff</option>
                     </select>
-                    ${['creator', 'editor'].includes(user.userType) ? `
-                        <button class="btn btn-secondary btn-small" onclick="toggleCommission('${user._id}', ${user.isCommissionMember})" style="background: ${user.isCommissionMember ? '#dc3545' : '#6f42c1'}; color: white; border: none; white-space: nowrap;">
-                            <i class="fas fa-${user.isCommissionMember ? 'user-minus' : 'user-plus'}"></i> ${user.isCommissionMember ? 'Remove' : 'Commission'}
+                    ${['creator', 'editor', 'staff'].includes(user.userType) ? `
+                        <button class="btn btn-secondary btn-small" onclick="toggleCreatorCommission('${user._id}', ${user.isCreatorCommissionMember})" style="background: ${user.isCreatorCommissionMember ? '#dc3545' : '#f57c00'}; color: white; border: none; white-space: nowrap; font-size: 12px;">
+                            <i class="fas fa-${user.isCreatorCommissionMember ? 'user-minus' : 'user-plus'}"></i> ${user.isCreatorCommissionMember ? 'Remove C' : 'Creator C'}
+                        </button>
+                        <button class="btn btn-secondary btn-small" onclick="toggleEditorCommission('${user._id}', ${user.isEditorCommissionMember})" style="background: ${user.isEditorCommissionMember ? '#dc3545' : '#6f42c1'}; color: white; border: none; white-space: nowrap; font-size: 12px;">
+                            <i class="fas fa-${user.isEditorCommissionMember ? 'user-minus' : 'user-plus'}"></i> ${user.isEditorCommissionMember ? 'Remove E' : 'Editor C'}
                         </button>
                     ` : ''}
                     <button class="btn btn-secondary btn-small" onclick="deleteUser('${user._id}', '${user.username}')" style="background: #dc3545; color: white; border: none;">
@@ -179,11 +183,11 @@ window.deleteUser = async function(userId, username) {
     }
 };
 
-// Toggle commission membership
-window.toggleCommission = async function(userId, isCurrentlyMember) {
+// Toggle creator commission membership
+window.toggleCreatorCommission = async function(userId, isCurrentlyMember) {
     const action = isCurrentlyMember ? 'remove from' : 'add to';
     
-    if (!confirm(`Are you sure you want to ${action} the commission?`)) {
+    if (!confirm(`Are you sure you want to ${action} the Creator Commission?`)) {
         return;
     }
     
@@ -200,13 +204,45 @@ window.toggleCommission = async function(userId, isCurrentlyMember) {
         const result = await response.json();
         
         if (result.success) {
-            alert(result.message + '\n\nNote: The user needs to logout and login again to see the Commission Dashboard button.');
+            alert(result.message + '\n\nNote: The user needs to logout and login again to see the Creator Commission Dashboard button.');
             loadUsers();
         } else {
             alert('Error: ' + result.message);
         }
     } catch (error) {
-        console.error('Error toggling commission:', error);
+        console.error('Error toggling creator commission:', error);
+        alert('Error: ' + error.message);
+    }
+};
+
+// Toggle editor commission membership
+window.toggleEditorCommission = async function(userId, isCurrentlyMember) {
+    const action = isCurrentlyMember ? 'remove from' : 'add to';
+    
+    if (!confirm(`Are you sure you want to ${action} the Editor Commission?`)) {
+        return;
+    }
+    
+    const apiUrl = window.CONFIG ? window.CONFIG.API_BASE_URL : 'http://localhost:5000/api';
+    
+    try {
+        const response = await fetch(`${apiUrl}/editor-commission/toggle/${userId}`, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            }
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            alert(result.message + '\n\nNote: The user needs to logout and login again to see the Editor Commission Dashboard button.');
+            loadUsers();
+        } else {
+            alert('Error: ' + result.message);
+        }
+    } catch (error) {
+        console.error('Error toggling editor commission:', error);
         alert('Error: ' + error.message);
     }
 };

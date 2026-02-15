@@ -11,11 +11,11 @@ import { protect, authorize } from '../middleware/auth.js';
 const router = express.Router();
 
 // @route   GET /api/commission/members
-// @desc    Get all commission members
+// @desc    Get all creator commission members
 // @access  Public
 router.get('/members', async (req, res) => {
   try {
-    const members = await User.find({ isCommissionMember: true })
+    const members = await User.find({ isCreatorCommissionMember: true })
       .select('username email firstName lastName userType')
       .sort({ createdAt: 1 });
 
@@ -30,7 +30,7 @@ router.get('/members', async (req, res) => {
 });
 
 // @route   PUT /api/commission/toggle/:userId
-// @desc    Toggle commission membership (owner only)
+// @desc    Toggle creator commission membership (owner only)
 // @access  Private/Owner
 router.put('/toggle/:userId', protect, authorize('owner'), async (req, res) => {
   try {
@@ -43,31 +43,31 @@ router.put('/toggle/:userId', protect, authorize('owner'), async (req, res) => {
       });
     }
 
-    // Check if user is creator or editor
-    if (!['creator', 'editor'].includes(user.userType)) {
+    // Check if user is creator, editor, or staff
+    if (!['creator', 'editor', 'staff'].includes(user.userType)) {
       return res.status(400).json({ 
         success: false, 
-        message: 'Only creators and editors can be commission members' 
+        message: 'Only creators, editors, and staff can be creator commission members' 
       });
     }
 
     // Check commission size limit
-    if (!user.isCommissionMember) {
-      const currentCount = await User.countDocuments({ isCommissionMember: true });
+    if (!user.isCreatorCommissionMember) {
+      const currentCount = await User.countDocuments({ isCreatorCommissionMember: true });
       if (currentCount >= 7) {
         return res.status(400).json({ 
           success: false, 
-          message: 'Commission is full (maximum 7 members)' 
+          message: 'Creator commission is full (maximum 7 members)' 
         });
       }
     }
 
-    user.isCommissionMember = !user.isCommissionMember;
+    user.isCreatorCommissionMember = !user.isCreatorCommissionMember;
     await user.save();
 
     res.json({
       success: true,
-      message: user.isCommissionMember ? 'User added to commission' : 'User removed from commission',
+      message: user.isCreatorCommissionMember ? 'User added to creator commission' : 'User removed from creator commission',
       data: user
     });
   } catch (error) {
@@ -80,11 +80,11 @@ router.put('/toggle/:userId', protect, authorize('owner'), async (req, res) => {
 // @access  Private (commission members only)
 router.get('/pending-requests', protect, async (req, res) => {
   try {
-    // Check if user is commission member
-    if (!req.user.isCommissionMember) {
+    // Check if user is creator commission member
+    if (!req.user.isCreatorCommissionMember) {
       return res.status(403).json({ 
         success: false, 
-        message: 'Access denied. Commission members only.' 
+        message: 'Access denied. Creator commission members only.' 
       });
     }
 
@@ -110,11 +110,11 @@ router.get('/pending-requests', protect, async (req, res) => {
 // @access  Private (commission members only)
 router.post('/vote/:requestId', protect, async (req, res) => {
   try {
-    // Check if user is commission member
-    if (!req.user.isCommissionMember) {
+    // Check if user is creator commission member
+    if (!req.user.isCreatorCommissionMember) {
       return res.status(403).json({ 
         success: false, 
-        message: 'Access denied. Commission members only.' 
+        message: 'Access denied. Creator commission members only.' 
       });
     }
 
@@ -165,13 +165,13 @@ router.post('/vote/:requestId', protect, async (req, res) => {
     await request.save();
 
     // Check if all commission members have voted
-    const commissionCount = await User.countDocuments({ isCommissionMember: true });
+    const commissionCount = await User.countDocuments({ isCreatorCommissionMember: true });
     
     // Commission must have exactly 7 members
     if (commissionCount < 7) {
       return res.json({
         success: true,
-        message: 'Vote recorded. Note: Commission needs 7 members to make decisions.',
+        message: 'Vote recorded. Note: Creator commission needs 7 members to make decisions.',
         votesCount: request.votes.length,
         totalNeeded: 7,
         currentCommissionSize: commissionCount

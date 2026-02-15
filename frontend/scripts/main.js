@@ -108,12 +108,22 @@ function renderAuthenticatedNav() {
         `;
     }
     
-    // Add Commission Dashboard for commission members
-    if (currentUser.isCommissionMember) {
+    // Add Commission Dashboard for creator commission members
+    if (currentUser.isCreatorCommissionMember) {
         navItems += `
             <a href="commission-dashboard.html" class="nav-item">
                 <i class="fas fa-gavel"></i>
-                Commission
+                Creators
+            </a>
+        `;
+    }
+    
+    // Add Editor Commission Dashboard for editor commission members
+    if (currentUser.isEditorCommissionMember) {
+        navItems += `
+            <a href="editor-commission-dashboard.html" class="nav-item">
+                <i class="fas fa-pen-fancy"></i>
+                Editors
             </a>
         `;
     }

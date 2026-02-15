@@ -83,7 +83,8 @@ router.post('/register', [
                 username: user.username,
                 email: user.email,
                 userType: user.userType,
-                isCommissionMember: user.isCommissionMember || false,
+                isCreatorCommissionMember: user.isCreatorCommissionMember || false,
+                isEditorCommissionMember: user.isEditorCommissionMember || false,
                 token: generateToken(user._id)
             }
         });
@@ -126,7 +127,8 @@ router.post('/login', async (req, res) => {
                 userType: user.userType,
                 firstName: user.firstName,
                 lastName: user.lastName,
-                isCommissionMember: user.isCommissionMember || false,
+                isCreatorCommissionMember: user.isCreatorCommissionMember || false,
+                isEditorCommissionMember: user.isEditorCommissionMember || false,
                 token: generateToken(user._id)
             }
         });

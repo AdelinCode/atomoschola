@@ -27,19 +27,20 @@ body {
     left: 0;
     right: 0;
     z-index: 1000;
-    height: 70px;
+    height: 80px;
 }
 
 .header-content {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    height: 70px;
+    height: 80px;
+    gap: 24px;
+    max-width: 100%;
 }
 
 .logo {
     flex-shrink: 0;
-    min-width: fit-content;
 }
 
 .logo a {
@@ -50,7 +51,11 @@ body {
     font-size: 20px;
     font-weight: 700;
     white-space: nowrap;
-    gap: 8px;
+    gap: 12px;
+}
+
+.logo a img {
+    height: 50px !important;
 }
 
 .logo i {
@@ -66,10 +71,9 @@ body {
     border: 1px solid #dee2e6;
     border-radius: 8px;
     padding: 8px 12px;
-    min-width: 300px;
-    max-width: 500px;
+    min-width: 250px;
+    max-width: 400px;
     flex: 1;
-    margin: 0 40px;
 }
 
 .search-bar input {
@@ -101,19 +105,21 @@ body {
 .nav-menu {
     display: flex;
     align-items: center;
-    gap: 20px;
+    gap: 4px;
+    flex-shrink: 0;
 }
 
 .nav-item {
-    display: flex;
+    display: inline-flex;
     align-items: center;
     text-decoration: none;
     color: #495057;
-    font-size: 14px;
+    font-size: 13px;
     padding: 8px 12px;
     border-radius: 6px;
     transition: all 0.2s ease;
-    position: relative;
+    white-space: nowrap;
+    font-weight: 500;
 }
 
 .nav-item:hover {
@@ -123,6 +129,7 @@ body {
 
 .nav-item i {
     margin-right: 6px;
+    font-size: 13px;
 }
 
 .badge {
@@ -275,7 +282,7 @@ body {
 /* Main Content */
 .main-content {
     margin-left: 250px;
-    margin-top: 70px;
+    margin-top: 80px;
     min-height: calc(100vh - 70px);
     padding: 40px 0;
 }
