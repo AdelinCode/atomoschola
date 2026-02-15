@@ -134,7 +134,7 @@ async function loadPendingRequests() {
             </div>
         `;
     }).join('');
-}
+
 
 // Store requests globally for preview
 let currentRequests = [];
@@ -189,6 +189,11 @@ function displayPendingRequests(requests) {
                         <div style="font-size: 14px; color: #666; margin-bottom: 12px;">
                             ${req.data.description || ''}
                         </div>
+                        
+                        <!-- Preview Button -->
+                        <button onclick="showLessonPreview('${req._id}')" style="background: #17a2b8; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 600; margin-bottom: 12px;">
+                            <i class="fas fa-eye"></i> Preview Lesson
+                        </button>
                         
                         <!-- Vote Progress -->
                         <div class="vote-progress">
@@ -271,3 +276,184 @@ async function voteOnRequest(requestId, vote) {
 
 // Make function global for onclick handlers
 window.voteOnRequest = voteOnRequest;
+
+// Show lesson preview in modal
+function showLessonPreview(requestId) {
+    const request = currentRequests.find(r => r._id === requestId);
+    if (!request) {
+        alert('Lesson not found');
+        return;
+    }
+
+    const lessonData = request.data;
+    
+    // Create modal
+    const modal = document.createElement('div');
+    modal.id = 'lessonPreviewModal';
+    modal.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.7);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10000;
+        padding: 20px;
+        overflow-y: auto;
+    `;
+    
+    const modalContent = document.createElement('div');
+    modalContent.style.cssText = `
+        background: #f8f9fa;
+        border-radius: 12px;
+        max-width: 1000px;
+        width: 100%;
+        max-height: 90vh;
+        overflow-y: auto;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        position: relative;
+    `;
+    
+    // Build content based on lesson type
+    let contentHTML = '';
+    let typeBadge = '';
+    let typeIcon = '';
+    
+    if (lessonData.type === 'text') {
+        typeBadge = 'text';
+        typeIcon = 'file-alt';
+        contentHTML = `
+            <div class="text-content">
+                ${lessonData.content || '<p style="color: #999;">No content available</p>'}
+            </div>
+            ${lessonData.attachments && lessonData.attachments.length > 0 ? `
+                <div style="margin-top: 30px; padding-top: 30px; border-top: 1px solid #e9ecef;">
+                    <h3 style="font-size: 20px; font-weight: 600; margin-bottom: 16px; color: #212529;">Attachments</h3>
+                    ${lessonData.attachments.map(att => `
+                        <div style="margin-bottom: 12px;">
+                            <a href="${att.url}" target="_blank" style="color: #007bff; text-decoration: none; font-size: 16px;">
+                                <i class="fas fa-paperclip"></i> ${att.name}
+                            </a>
+                        </div>
+                    `).join('')}
+                </div>
+            ` : ''}
+        `;
+    } else if (lessonData.type === 'video') {
+        typeBadge = 'video';
+        typeIcon = 'play-circle';
+        const videoId = lessonData.videoUrl ? lessonData.videoUrl.split('v=')[1]?.split('&')[0] : null;
+        contentHTML = `
+            <div class="video-content" style="text-align: center;">
+                ${videoId ? `
+                    <div style="position: relative; width: 100%; max-width: 800px; margin: 0 auto 20px;">
+                        <div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden;">
+                            <iframe 
+                                src="https://www.youtube.com/embed/${videoId}" 
+                                style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; border-radius: 8px;"
+                                allowfullscreen>
+                            </iframe>
+                        </div>
+                    </div>
+                ` : '<div style="width: 100%; max-width: 800px; height: 450px; background: #000; border-radius: 8px; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; color: white; font-size: 18px;">No video URL provided</div>'}
+                ${lessonData.content ? `
+                    <div class="text-content" style="margin-top: 30px; text-align: left;">
+                        ${lessonData.content}
+                    </div>
+                ` : ''}
+            </div>
+        `;
+    } else if (lessonData.type === 'presentation') {
+        typeBadge = 'presentation';
+        typeIcon = 'presentation';
+        contentHTML = `
+            <div class="presentation-content" style="text-align: center;">
+                ${lessonData.presentationUrl ? `
+                    <div style="position: relative; width: 100%; height: 500px; border: 1px solid #dee2e6; border-radius: 8px; background: #f8f9fa; overflow: hidden; margin-bottom: 20px;">
+                        <iframe 
+                            src="${lessonData.presentationUrl}" 
+                            style="width: 100%; height: 100%; border: none;"
+                            allowfullscreen>
+                        </iframe>
+                    </div>
+                ` : '<div style="width: 100%; height: 500px; border: 1px solid #dee2e6; border-radius: 8px; background: #f8f9fa; display: flex; align-items: center; justify-content: center; color: #6c757d; font-size: 18px; margin-bottom: 20px;">No presentation URL provided</div>'}
+                ${lessonData.content ? `
+                    <div class="text-content" style="margin-top: 30px; text-align: left;">
+                        ${lessonData.content}
+                    </div>
+                ` : ''}
+            </div>
+        `;
+    }
+    
+    modalContent.innerHTML = `
+        <button onclick="closeLessonPreview()" style="position: absolute; top: 20px; right: 20px; background: white; border: none; color: #495057; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; font-size: 20px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.15); z-index: 10; transition: all 0.2s;">
+            <i class="fas fa-times"></i>
+        </button>
+        
+        <div style="padding: 40px;">
+            <!-- Lesson Header Section -->
+            <div style="background: #ffffff; border-radius: 12px; padding: 40px; margin-bottom: 30px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);">
+                <div style="display: inline-flex; align-items: center; padding: 6px 12px; border-radius: 20px; font-size: 14px; font-weight: 500; margin-bottom: 16px; background: ${typeBadge === 'video' ? '#fce4ec' : typeBadge === 'presentation' ? '#e8f5e8' : '#e3f2fd'}; color: ${typeBadge === 'video' ? '#c2185b' : typeBadge === 'presentation' ? '#388e3c' : '#1976d2'};">
+                    <i class="fas fa-${typeIcon}" style="margin-right: 6px;"></i>
+                    ${lessonData.type.charAt(0).toUpperCase() + lessonData.type.slice(1)} Lesson
+                </div>
+                <h1 style="font-size: 32px; font-weight: 700; color: #212529; margin-bottom: 16px; line-height: 1.2;">${lessonData.title}</h1>
+                <p style="font-size: 18px; color: #6c757d; line-height: 1.6; margin-bottom: 30px;">${lessonData.description || ''}</p>
+                
+                <div style="display: flex; flex-direction: column; gap: 20px;">
+                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                        <div style="display: flex; align-items: center; font-size: 14px; color: #495057;">
+                            <i class="fas fa-user" style="margin-right: 8px; width: 16px; color: #6c757d;"></i>
+                            <span>Created by: <strong>${request.requestedBy.username}</strong></span>
+                        </div>
+                        <div style="display: flex; align-items: center; font-size: 14px; color: #495057;">
+                            <i class="fas fa-calendar" style="margin-right: 8px; width: 16px; color: #6c757d;"></i>
+                            <span>Submitted: <strong>${new Date(request.createdAt).toLocaleDateString()}</strong></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Lesson Content Section -->
+            <div style="background: #ffffff; border-radius: 12px; padding: 40px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);">
+                ${contentHTML}
+            </div>
+        </div>
+    `;
+    
+    modal.appendChild(modalContent);
+    document.body.appendChild(modal);
+    
+    // Add hover effect to close button
+    const closeBtn = modalContent.querySelector('button');
+    closeBtn.addEventListener('mouseenter', function() {
+        this.style.background = '#f8f9fa';
+        this.style.transform = 'scale(1.1)';
+    });
+    closeBtn.addEventListener('mouseleave', function() {
+        this.style.background = 'white';
+        this.style.transform = 'scale(1)';
+    });
+    
+    // Close on background click
+    modal.addEventListener('click', function(e) {
+        if (e.target === modal) {
+            closeLessonPreview();
+        }
+    });
+}
+
+function closeLessonPreview() {
+    const modal = document.getElementById('lessonPreviewModal');
+    if (modal) {
+        modal.remove();
+    }
+}
+
+// Make functions global
+window.showLessonPreview = showLessonPreview;
+window.closeLessonPreview = closeLessonPreview;
