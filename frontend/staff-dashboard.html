@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <script>!function(){var t=localStorage.getItem('atomo-schola-theme')||( window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');if(t==='dark')document.documentElement.className+=' dark-mode';}();</script>
@@ -10,9 +10,7 @@
     <link rel="stylesheet" href="styles/theme.css">
     <link rel="stylesheet" href="styles/dropdown.css">
     <link rel="stylesheet" href="styles/notifications.css">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="styles/dark-mode.css">
-    <style>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">    <style>
         .staff-container {
             max-width: 1200px;
             margin: 80px auto 40px;
@@ -67,14 +65,134 @@
             </div>
         </div>
 
+        <!-- Edit Lessons -->
+        <div class="dashboard-card" style="margin-bottom: 20px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                <h3 style="margin: 0;"><i class="fas fa-edit"></i> Edit Lessons</h3>
+                <button onclick="toggleEditLessonsPanel()" id="toggleEditBtn" style="background: #17a2b8; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 14px;">
+                    <i class="fas fa-chevron-down"></i> Show
+                </button>
+            </div>
+            <div id="editLessonsPanel" style="display: none;">
+                <div style="margin-bottom: 16px; display: flex; gap: 10px;">
+                    <input type="text" id="lessonSearchInput" placeholder="Search lessons..." style="flex: 1; padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px;">
+                    <button onclick="searchLessonsForEdit()" style="background: #17a2b8; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer;">
+                        <i class="fas fa-search"></i> Search
+                    </button>
+                </div>
+                <div id="editLessonsList"></div>
+            </div>
+        </div>
+
+        <!-- Edit Lesson Modal -->
+        <div id="editLessonModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; align-items: center; justify-content: center;">
+            <div style="background: white; border-radius: 12px; padding: 32px; max-width: 700px; width: 90%; max-height: 85vh; overflow-y: auto; position: relative;">
+                <button onclick="closeEditModal()" style="position: absolute; top: 16px; right: 16px; background: none; border: none; font-size: 20px; cursor: pointer; color: #999;">&times;</button>
+                <h3 style="margin-bottom: 20px; color: #333;"><i class="fas fa-edit"></i> Edit Lesson</h3>
+                <input type="hidden" id="editLessonId">
+                <div style="display: flex; flex-direction: column; gap: 14px;">
+                    <div>
+                        <label style="font-size: 13px; font-weight: 600; color: #555; display: block; margin-bottom: 4px;">Title</label>
+                        <input type="text" id="editTitle" style="width: 100%; padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; box-sizing: border-box;">
+                    </div>
+                    <div>
+                        <label style="font-size: 13px; font-weight: 600; color: #555; display: block; margin-bottom: 4px;">Slug</label>
+                        <input type="text" id="editSlug" style="width: 100%; padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; box-sizing: border-box;">
+                    </div>
+                    <div>
+                        <label style="font-size: 13px; font-weight: 600; color: #555; display: block; margin-bottom: 4px;">Description</label>
+                        <textarea id="editDescription" rows="3" style="width: 100%; padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; box-sizing: border-box; resize: vertical;"></textarea>
+                    </div>
+                    <div>
+                        <label style="font-size: 13px; font-weight: 600; color: #555; display: block; margin-bottom: 4px;">Content</label>
+                        <textarea id="editContent" rows="8" style="width: 100%; padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; box-sizing: border-box; resize: vertical; font-family: monospace;"></textarea>
+                    </div>
+                    <div style="display: flex; gap: 14px;">
+                        <div style="flex: 1;">
+                            <label style="font-size: 13px; font-weight: 600; color: #555; display: block; margin-bottom: 4px;">Type</label>
+                            <select id="editType" style="width: 100%; padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px;">
+                                <option value="text">Text</option>
+                                <option value="video">Video</option>
+                                <option value="audio">Audio</option>
+                                <option value="presentation">Presentation</option>
+                            </select>
+                        </div>
+                        <div style="flex: 1;">
+                            <label style="font-size: 13px; font-weight: 600; color: #555; display: block; margin-bottom: 4px;">Status</label>
+                            <select id="editStatus" style="width: 100%; padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px;">
+                                <option value="draft">Draft</option>
+                                <option value="pending_review">Pending Review</option>
+                                <option value="published">Published</option>
+                                <option value="archived">Archived</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <input type="checkbox" id="editIsPremium" style="width: 16px; height: 16px;">
+                        <label for="editIsPremium" style="font-size: 14px; color: #555;">Premium lesson</label>
+                    </div>
+                    <div>
+                        <label style="font-size: 13px; font-weight: 600; color: #555; display: block; margin-bottom: 4px;">Language</label>
+                        <select id="editLanguage" style="width: 100%; padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px;">
+                            <option value="română">Română</option>
+                            <option value="english">English</option>
+                            <option value="français">Français</option>
+                            <option value="deutsch">Deutsch</option>
+                            <option value="español">Español</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="font-size: 13px; font-weight: 600; color: #555; display: block; margin-bottom: 4px;">Level</label>
+                        <select id="editLevel" style="width: 100%; padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px;">
+                            <option value="beginner">Beginner</option>
+                            <option value="intermediate">Intermediate</option>
+                            <option value="advanced">Advanced</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="font-size: 13px; font-weight: 600; color: #555; display: block; margin-bottom: 4px;">Tags <span style="font-weight:400;color:#aaa;">(Enter to add)</span></label>
+                        <div id="editTagsContainer" style="display:flex; flex-wrap:wrap; gap:6px; padding:8px; border:1px solid #ddd; border-radius:6px; min-height:38px; cursor:text;" onclick="document.getElementById('editTagInput').focus()">
+                            <input type="text" id="editTagInput" placeholder="Add tag..." style="border:none; outline:none; flex:1; min-width:80px; font-size:14px; background:transparent;">
+                        </div>
+                    </div>
+                </div>
+                <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 24px;">
+                    <button onclick="closeEditModal()" style="background: #6c757d; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-size: 14px;">Cancel</button>
+                    <button onclick="saveLesson()" style="background: #28a745; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 600;">
+                        <i class="fas fa-save"></i> Save Changes
+                    </button>
+                </div>
+            </div>
+        </div>
+
         <!-- Pending Requests -->
-        <div class="dashboard-card">
+        <div class="dashboard-card" style="margin-bottom: 20px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
                 <h3 style="margin: 0;"><i class="fas fa-clock"></i> Pending Requests</h3>
                 <span id="pendingCount" style="background: #ffc107; color: #000; padding: 4px 12px; border-radius: 12px; font-weight: 600; font-size: 14px;">0</span>
             </div>
             <div id="pendingRequestsList" style="max-height: 600px; overflow-y: auto;">
                 <p style="text-align: center; color: #6c757d;">Loading requests...</p>
+            </div>
+        </div>
+
+        <!-- Reports -->
+        <div class="dashboard-card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                <h3 style="margin: 0;"><i class="fas fa-flag" style="color:#dc3545;"></i> Reports</h3>
+                <div style="display:flex; gap:8px; align-items:center;">
+                    <select id="reportsFilter" onchange="loadReports()" style="padding:6px 10px; border:1px solid #ddd; border-radius:6px; font-size:13px;">
+                        <option value="pending">Pending</option>
+                        <option value="all">All</option>
+                        <option value="resolved">Resolved</option>
+                        <option value="dismissed">Dismissed</option>
+                    </select>
+                    <span id="reportsCount" style="background: #dc3545; color: white; padding: 4px 12px; border-radius: 12px; font-weight: 600; font-size: 14px;">0</span>
+                </div>
+            </div>
+            <div id="reportsList" style="max-height: 600px; overflow-y: auto;">
+                <p style="text-align: center; color: #6c757d;">Loading reports...</p>
             </div>
         </div>
     </main>
@@ -84,9 +202,7 @@
     <script src="scripts/search.js"></script>
     <script src="scripts/notifications.js"></script>
     <script src="scripts/main.js"></script>
-    <script src="scripts/staff-dashboard.js"></script>
-    <script src="scripts/theme-manager.js"></script>
-    <!-- Footer -->
+    <script src="scripts/staff-dashboard.js"></script>    <!-- Footer -->
     <footer class="site-footer">
         <div class="footer-inner">
             <div class="footer-brand">

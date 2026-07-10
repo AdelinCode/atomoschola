@@ -246,15 +246,17 @@ function updateLessonHeader() {
     
     // Handle creators (can be array of objects or strings)
     if (creatorsElement) {
-        let creatorsText = 'Unknown';
         if (currentLesson.creators && currentLesson.creators.length > 0) {
             if (typeof currentLesson.creators[0] === 'object') {
-                creatorsText = currentLesson.creators.map(c => c.username || c.firstName || 'Unknown').join(', ');
+                creatorsElement.innerHTML = currentLesson.creators.map(c =>
+                    `<a href="public-profile.html?id=${c._id}" style="color:inherit;font-weight:600;text-decoration:none;" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">${c.username || c.firstName || 'Unknown'}</a>`
+                ).join(', ');
             } else {
-                creatorsText = currentLesson.creators.join(', ');
+                creatorsElement.textContent = currentLesson.creators.join(', ');
             }
+        } else {
+            creatorsElement.textContent = 'Unknown';
         }
-        creatorsElement.textContent = creatorsText;
     }
     
     // Handle editors
@@ -271,7 +273,27 @@ function updateLessonHeader() {
     }
     
     if (dateElement) dateElement.textContent = window.EduPlatform.formatDate(currentLesson.createdAt);
-    
+
+    // Render tags (language, level, custom tags)
+    const tagsEl = document.getElementById('lessonTags');
+    if (tagsEl) {
+        const langColors = { română: '#3b82f6', english: '#10b981', français: '#f59e0b', deutsch: '#6366f1', español: '#ef4444', other: '#6b7280' };
+        const levelColors = { beginner: '#22c55e', intermediate: '#f97316', advanced: '#dc2626' };
+        let html = '';
+        if (currentLesson.language) {
+            html += `<span style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:600;background:${langColors[currentLesson.language] || '#6b7280'}22;color:${langColors[currentLesson.language] || '#6b7280'};border:1px solid ${langColors[currentLesson.language] || '#6b7280'}44;"><i class="fas fa-language"></i> ${currentLesson.language}</span>`;
+        }
+        if (currentLesson.level) {
+            html += `<span style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:600;background:${levelColors[currentLesson.level]}22;color:${levelColors[currentLesson.level]};border:1px solid ${levelColors[currentLesson.level]}44;"><i class="fas fa-signal"></i> ${currentLesson.level}</span>`;
+        }
+        if (currentLesson.tags && currentLesson.tags.length > 0) {
+            currentLesson.tags.forEach(tag => {
+                html += `<span style="display:inline-flex;align-items:center;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:500;background:#f3f4f6;color:#374151;border:1px solid #e5e7eb;">${tag}</span>`;
+            });
+        }
+        tagsEl.innerHTML = html;
+    }
+
     // Update bookmark button state
     updateBookmarkButton();
 }
