@@ -414,6 +414,37 @@
     }
 }
 
+@media (max-width: 480px) {
+    .category-major-card {
+        padding: 24px 16px;
+    }
+
+    .category-major-card .card-icon {
+        font-size: 44px;
+    }
+
+    .category-major-card h2 {
+        font-size: 22px;
+    }
+
+    .category-stats-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+    }
+
+    .category-stat-item {
+        padding: 10px 6px;
+    }
+
+    .category-stat-item .stat-value {
+        font-size: 18px;
+    }
+
+    .category-stat-item .stat-label {
+        font-size: 12px;
+    }
+}
+
 /* Override theme.css heading color for accent elements */
 .category-major-card .card-icon.stem-accent,
 .stat-value.stem-accent {
@@ -436,9 +467,10 @@
 .hero-quick-links {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 16px;
-    padding: 24px;
-    width: 66.666%;
+    gap: 14px;
+    padding: 20px;
+    width: 70%;
+    max-width: 680px;
     margin: 0 auto;
     box-sizing: border-box;
     position: relative;
@@ -447,10 +479,10 @@
 
 .hero-quick-btn {
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 10px;
+    gap: 8px;
     padding: 10px 14px;
     border-radius: 12px;
     text-decoration: none;
@@ -526,14 +558,14 @@
 }
 
 .hero-btn-icon {
-    width: 34px;
-    height: 34px;
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    font-size: 16px;
+    font-size: 18px;
     color: white;
 }
 
@@ -541,10 +573,11 @@
     display: flex;
     flex-direction: column;
     text-align: center;
+    align-items: center;
 }
 
 .hero-btn-label {
-    font-size: 15px;
+    font-size: 14px;
     font-weight: 700;
     line-height: 1.2;
 }
@@ -597,29 +630,31 @@
 /* Responsive */
 @media (max-width: 900px) {
     .hero-quick-links {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 12px;
+        width: 80%;
+        gap: 10px;
+        padding: 14px;
     }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 600px) {
     .hero-quick-links {
-        grid-template-columns: 1fr 1fr;
-        gap: 10px;
+        width: 100%;
+        gap: 8px;
+        padding: 10px;
     }
 
     .hero-quick-btn {
-        padding: 14px 12px;
-        gap: 10px;
+        padding: 12px 10px;
+        gap: 8px;
     }
 
     .hero-btn-icon {
-        width: 38px;
-        height: 38px;
-        font-size: 16px;
+        width: 34px;
+        height: 34px;
+        font-size: 15px;
     }
 
     .hero-btn-label {
-        font-size: 13px;
+        font-size: 12px;
     }
 }
