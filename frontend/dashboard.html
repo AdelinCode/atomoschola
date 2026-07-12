@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <script>!function(){var t=localStorage.getItem('atomo-schola-theme')||(window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');if(t==='dark')document.documentElement.classList.add('dark-mode');}();</script>
@@ -124,6 +124,14 @@
         .user-type-badge.staff {
             background: #fff3cd;
             color: #856404;
+        }
+        .user-type-badge.operator {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        .user-type-badge.translator {
+            background: #ccfbf1;
+            color: #0f766e;
         }
         .user-type-badge.owner {
             background: #f8d7da;
@@ -253,6 +261,7 @@
                 <nav class="nav-menu" id="navMenu">
                     <!-- Dynamic navigation will be inserted here -->
                 </nav>
+            <button class="nav-hamburger" id="navHamburger" aria-label="Open menu"><span></span><span></span><span></span></button>
                     </div>
     </header>
 
