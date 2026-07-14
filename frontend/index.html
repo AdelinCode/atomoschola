@@ -253,7 +253,7 @@
                                     <div class="banner-card-icon">
                                         <i class="fas fa-edit"></i>
                                     </div>
-                                    <h3>See Room for Improvement?</h3>
+                                    <h3>See room for improvement?</h3>
                                 </div>
                                 <p>Spotted something that could be improved? Propose edits to existing lessons and help us maintain high quality educational content.</p>
                             </div>
@@ -346,11 +346,14 @@
     <script src="scripts/theme.js"></script>
     <script src="scripts/main.js"></script>
     <script>
-        // Show launch popup on first visit or every time
+        // Show launch popup only once per session
         window.addEventListener('load', function() {
             const popup = document.getElementById('launchPopup');
-            if (popup) {
+            if (popup && !sessionStorage.getItem('launchPopupShown')) {
                 popup.style.display = 'flex';
+                sessionStorage.setItem('launchPopupShown', '1');
+            } else if (popup) {
+                popup.style.display = 'none';
             }
         });
 
