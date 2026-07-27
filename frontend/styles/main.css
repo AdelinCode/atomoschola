@@ -53,8 +53,8 @@ body {
 }
 
 .header-content .search-bar {
-    flex: 0 1 260px;
-    min-width: 160px;
+    flex: 0 1 420px;
+    min-width: 200px;
     margin-left: 50px;
     margin-right: auto;
 }
@@ -509,12 +509,19 @@ body {
     transform: translateY(-110%);
     transition: transform 0.3s ease;
     max-height: calc(100vh - 70px);
-    overflow-y: auto;
+    overflow-y: scroll;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    touch-action: pan-y;
+    visibility: hidden;
+    pointer-events: none;
     box-shadow: 0 8px 24px rgba(0,0,0,0.12);
 }
 
 .mobile-nav-panel.open {
     transform: translateY(0);
+    visibility: visible;
+    pointer-events: auto;
 }
 
 /* Mobile search */

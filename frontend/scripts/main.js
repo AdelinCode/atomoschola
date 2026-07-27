@@ -28,6 +28,10 @@ function initializeApp() {
         // Hide guest-only CTA section
         const ctaSection = document.getElementById('ctaSection');
         if (ctaSection) ctaSection.style.display = 'none';
+        // Hide footer register link when logged in
+        const footerRegisterLink = document.getElementById('footerRegisterLink')
+            || document.querySelector('.site-footer a[href="register.html"]');
+        if (footerRegisterLink) footerRegisterLink.style.display = 'none';
     } else {
         currentUser = null;
         renderGuestNav();
@@ -73,6 +77,7 @@ function renderGuestNav() {
             <div class="dropdown-menu" id="contributorsGuestDropdown">
                 <a href="staff.html"><i class="fas fa-users-cog"></i> Contributors</a>
                 <a href="#" onclick="showLeaderboardModal(); return false;"><i class="fas fa-trophy"></i> Leaderboard</a>
+                <a href="events.html"><i class="fas fa-calendar-alt"></i> Events</a>
             </div>
         </div>
         <a href="login.html" class="nav-item">
@@ -135,29 +140,13 @@ function renderAuthenticatedNav() {
             <div class="dropdown-menu" id="contributorsDropdown">
                 <a href="staff.html"><i class="fas fa-users-cog"></i> Contributors</a>
                 <a href="#" onclick="showLeaderboardModal(); return false;"><i class="fas fa-trophy"></i> Leaderboard</a>
+                <a href="events.html"><i class="fas fa-calendar-alt"></i> Events</a>
             </div>
         </div>
     `;
     
-    // Add Events button for all users
-    navItems += `
-        <a href="events.html" class="nav-item">
-            <i class="fas fa-calendar-alt"></i>
-            Events
-        </a>
-    `;
-    
-    // Add Notifications button for authenticated users
-    navItems += `
-        <button class="nav-item" onclick="showNotificationsModal()" style="background: none; border: none; cursor: pointer; position: relative;">
-        <i class="fa-solid fa-envelope"></i>
-            <strong>Inbox</strong>
-            <span id="notificationBadge" style="display: none; position: absolute; top: 4px; right: 8px; background: #dc3545; color: white; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; font-weight: bold; align-items: center; justify-content: center;">0</span>
-        </button>
-    `;
-
     // Build Dashboard dropdown (only if user has access to at least one dashboard)
-    const hasDashboardAccess = 
+    const hasDashboardAccess =
         ['creator', 'editor', 'staff', 'owner'].includes(currentUser.userType) ||
         currentUser.isCreatorCommissionMember ||
         currentUser.isEditorCommissionMember;
@@ -196,7 +185,6 @@ function renderAuthenticatedNav() {
         `;
     }
 
-    
     // Account dropdown
     navItems += `
         <div class="account-dropdown">
@@ -211,6 +199,10 @@ function renderAuthenticatedNav() {
                     <small>${capitalizeFirst(currentUser.userType)}</small>
                 </div>
                 <div class="dropdown-divider"></div>
+                <a href="#" id="inboxBtn" style="position:relative;">
+                    <i class="fas fa-envelope"></i> Inbox
+                    <span id="notificationBadge" style="display: none; position: absolute; top: 50%; right: 12px; transform: translateY(-50%); background: #dc3545; color: white; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; font-weight: bold; align-items: center; justify-content: center;">0</span>
+                </a>
                 <a href="profile.html"><i class="fas fa-user"></i> Profile</a>
                 <a href="#" id="bookmarksBtn"><i class="fas fa-bookmark"></i> My Bookmarks</a>
                 <a href="settings.html"><i class="fas fa-cog"></i> Settings</a>
@@ -220,7 +212,7 @@ function renderAuthenticatedNav() {
             </div>
         </div>
     `;
-    
+
     navMenu.innerHTML = navItems;
     
     // Setup event listeners
@@ -283,6 +275,17 @@ function setupNavEventListeners() {
         bookmarksBtn.addEventListener('click', function(e) {
             e.preventDefault();
             showBookmarksModal();
+        });
+    }
+
+    // Inbox button
+    const inboxBtn = document.getElementById('inboxBtn');
+    if (inboxBtn) {
+        inboxBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            // Close account dropdown first
+            document.getElementById('accountDropdown')?.classList.remove('show');
+            showNotificationsModal();
         });
     }
     
@@ -1098,6 +1101,7 @@ function closeMobileNav() {
 
 function buildMobilePanel(panel) {
     const currentPath = window.location.pathname;
+    const isDark = document.documentElement.classList.contains('dark-mode');
 
     // Search bar
     let html = `
@@ -1122,17 +1126,10 @@ function buildMobilePanel(panel) {
         <div class="mobile-nav-section mobile-nav-section-label">Community</div>
         <a href="staff.html" class="mobile-nav-item"><i class="fas fa-users-cog"></i> Contributors</a>
         <a href="events.html" class="mobile-nav-item"><i class="fas fa-calendar-alt"></i> Events</a>
+        <a href="#" class="mobile-nav-item" onclick="showLeaderboardModal(); closeMobileNav(); return false;"><i class="fas fa-trophy"></i> Leaderboard</a>
     `;
 
     if (currentUser) {
-        // Inbox
-        html += `
-            <div class="mobile-nav-section"></div>
-            <button class="mobile-nav-item" onclick="showNotificationsModal(); closeMobileNav();">
-                <i class="fas fa-envelope"></i> Inbox
-            </button>
-        `;
-
         // Dashboard links
         const hasDash = ['creator','editor','staff','owner'].includes(currentUser.userType)
             || currentUser.isCreatorCommissionMember
@@ -1158,6 +1155,9 @@ function buildMobilePanel(panel) {
         html += `
             <div class="mobile-nav-section">
                 <div class="mobile-nav-section-label">Account — ${currentUser.username}</div>
+                <button class="mobile-nav-item" onclick="showNotificationsModal(); closeMobileNav();">
+                    <i class="fas fa-envelope"></i> Inbox
+                </button>
                 <a href="profile.html" class="mobile-nav-item"><i class="fas fa-user"></i> Profile</a>
                 <a href="settings.html" class="mobile-nav-item"><i class="fas fa-cog"></i> Settings</a>
                 <button class="mobile-nav-item" style="color:#dc3545;" onclick="localStorage.removeItem('token');localStorage.removeItem('user');window.location.href='index.html';">
@@ -1174,8 +1174,7 @@ function buildMobilePanel(panel) {
         `;
     }
 
-    // Theme toggle at bottom
-    const isDark = document.documentElement.classList.contains('dark-mode');
+    // Theme toggle — always last
     html += `
         <div class="mobile-nav-section">
             <button class="mobile-nav-item" onclick="if(window.themeManager){window.themeManager.toggleTheme();this.querySelector('i').className='fas fa-'+(document.documentElement.classList.contains('dark-mode')?'sun':'moon');this.querySelector('span').textContent=document.documentElement.classList.contains('dark-mode')?'Light Mode':'Dark Mode';}">
